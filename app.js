@@ -6,11 +6,7 @@ const chalk = require("chalk");
 
 conPassword.connect((err) => {
   if (err) throw err;
-  console.log(
-    chalk.cyan.bold(
-      `===========================================================================`
-    )
-  );
+  console.log(chalk.cyan.bold(`======================================================================`));
   console.log(``);
   console.log(
     chalk.bgCyan.bold(
@@ -22,18 +18,11 @@ conPassword.connect((err) => {
         whitespaceBreak: true,
       })
     )
-  );
+);
   console.log(``);
-  console.log(
-    `                                        ` +
-      chalk.greenBright.bold("Developed By: Cody Lewis")
-  );
+  console.log(`                                   ` +chalk.greenBright.bold("Developed By: Cody Lewis"));
   console.log(``);
-  console.log(
-    chalk.cyan.bold(
-      `===========================================================================`
-    )
-  );
+  console.log(chalk.cyan.bold(`======================================================================`));
   promptUser();
 });
 
@@ -86,20 +75,9 @@ const promptUser = () => {
 
 // showAllDepartments() -----------------------------------------------------------------
 showAllDepartments = () => {
-  console.log(
-    chalk.cyan.bold(
-      `======================================================================`
-    )
-  );
-  console.log(
-    `                              ` +
-      chalk.yellow.bold(`Viewing All Departments:`)
-  );
-  console.log(
-    chalk.cyan.bold(
-      `======================================================================`
-    )
-  );
+  console.log(chalk.cyan.bold(`======================================================================`));
+  console.log(`                  ` +chalk.yellow.bold(`Viewing All Departments:`));
+  console.log(chalk.cyan.bold(`======================================================================`));
   const sql = `SELECT * FROM department`;
 
   conPassword.promise().query(sql, (err, rows) => {
@@ -111,19 +89,9 @@ showAllDepartments = () => {
 
 // showAllRoles(); -----------------------------------------------------------------
 showAllRoles = () => {
-  console.log(
-    chalk.cyan.bold(
-      `======================================================================`
-    )
-  );
-  console.log(
-    `                              ` + chalk.yellow.bold(`Viewing All Roles:`)
-  );
-  console.log(
-    chalk.cyan.bold(
-      `======================================================================`
-    )
-  );
+  console.log(chalk.cyan.bold(`======================================================================`));
+  console.log(`                  ` + chalk.yellow.bold(`Viewing All Roles:`));
+  console.log(chalk.cyan.bold(`======================================================================`));
   const sql = `SELECT * FROM role`;
 
   conPassword.promise().query(sql, (err, rows) => {
@@ -135,20 +103,12 @@ showAllRoles = () => {
 
 // showAllEmployees();------------------------------------------------------------
 showAllEmployees = () => {
-  console.log(
-    chalk.cyan.bold(
-      `======================================================================`
-    )
-  );
+  console.log(chalk.cyan.bold(`======================================================================`));
   console.log(
     `                              ` +
       chalk.yellow.bold(`Viewing All Employees:`)
   );
-  console.log(
-    chalk.cyan.bold(
-      `======================================================================`
-    )
-  );
+  console.log(chalk.cyan.bold(`======================================================================`));
   const sql = `SELECT employee.id, 
                     employee.first_name, 
                     employee.last_name, 
@@ -169,10 +129,11 @@ showAllEmployees = () => {
 
 // addDepartment = () -----------------------------------------------------------------
 addDepartment = () => {
-  inquirer.prompt([
+  inquirer
+    .prompt([
       {
-        name: 'addDepartment',
-        type: 'input',
+        name: "addDepartment",
+        type: "input",
         message: "Enter the name of the department you would like to add!",
         validate: validate.validateString,
       },
@@ -195,66 +156,83 @@ addDepartment = () => {
 
 // addRole(); -----------------------------------------------------------------
 addRole = () => {
-    const newRoleSql = 'SELECT * FROM department'
-  conPassword.promise().query(newRoleSql, (err, data) => {
-      if (err) throw err;
-      let departmentNames = [];
-      data.forEach((department) => {departmentNames.push(department.department_name);});
-      departmentNames.push('Create New Department');
-    inquirer.prompt([
+  inquirer
+    .prompt([
       {
-        name: 'departmentChoice',
-        type: 'input',
-        message: 'Choose the department the new role will be in!',
-       choices: departmentNames
-      }
+        name: "roleName",
+        type: "input",
+        message: "Please enter the new role you would like to add!",
+        validate: (addRoleName) => {
+          if (addRoleName) {
+            return true;
+          } else {
+            console.log("Please enter a new role!");
+            return false;
+          }
+        },
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "Please enter the salary for this role!",
+        validate: (addSalary) => {
+          if (isNAN(addSalary)) {
+            return true;
+          } else {
+            console.log("Please enter a salary");
+            return false;
+          }
+        },
+      },
     ])
     .then((answer) => {
-      if (answer.departmentChoice === 'Create Department') {
-          this.addDepartment();
-      } else {
-          addNewRole(answer);
-      }
-  )};
+      const params = [answer.roleName, answer.salary];
 
-    addNewRole = (departmentData) => {
-      inquirer.prompt([
-          {
-            name: 'newRole',
-            type: 'input',
-            message: 'Enter the name of your new role!',
-            validate: validate.validateString  
-          },
-          {
-            name: 'salary',
-            type: 'input',
-            message: 'Please enter the salary of the new role!',
-            validate: validate.validateSalary
-          }
-      ]) 
-      .then((answer) => {
-          let createNewRole = answer.newRole;
-          let departmentId;
+      const roleSql = `SELECT * FROM department`;
 
-          response.forEach((department) => {
-            if (departmentData.departmentName === department.department_name) {departmentId = department.id;}
-          }); 
+      connection.promise().query(roleSql, (err, data) => {
+        if (err) throw err;
 
-            let sql =   `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
-            let params = [createNewRole, answer.salary, departmentId];
+        const departmentName = data.map(({ name, id }) => ({
+          name: name,
+          value: id,
+        }));
 
-            conPassword.query(sql, params, (err, res) => {
-                if (err) throw err;
-                console.log(chalk.cyan.bold(`====================================================================================`));
-                console.log(chalk.yellow(`New Role Created!`));
-                console.log(chalk.cyan.bold(`====================================================================================`));
-                showAllRoles();
+        inquirer
+          .prompt([
+            {
+              name: "departmentName",
+              type: "list",
+              message:
+                "Please choose a department where you would like to add this role!",
+              choices: departmentName,
+            },
+          ])
+          .then((departmentNameChoice) => {
+            const departmentName = departmentNameChoice.departmentName;
+            params.push(departmentName);
+
+            const sql = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
+
+            connection.query(sql, params, (err, res) => {
+              if (err) throw err;
+              console.log(chalk.cyan.bold(`======================================================================`));
+              console.log(chalk.yellow("New Role" + answer.role + "Created And Added To Roles!"));
+              console.log(chalk.cyan.bold(`======================================================================`));
+
+              showAllRoles();
             });
+          });
+      });
     });
 };
-    
- 
+//             conPassword.query(sql, params, (err, res) => {
+//                 if (err) throw err;
 
+//                 showAllRoles();
+//             });
+//     });
+// };
 
 // // addEmployee(); -----------------------------------------------------------------
 // addEmployee();
