@@ -76,7 +76,7 @@ const promptUser = () => {
 // showAllDepartments() -----------------------------------------------------------------
 showAllDepartments = () => {
   console.log(chalk.cyan.bold(`======================================================================`));
-  console.log(`                  ` +chalk.yellow.bold(`Viewing All Departments:`));
+  console.log(`                  ` +chalk.yellow.bold( `Viewing All Departments:` ));
   console.log(chalk.cyan.bold(`======================================================================`));
   const sql = `SELECT * FROM department`;
 
@@ -90,7 +90,7 @@ showAllDepartments = () => {
 // showAllRoles(); -----------------------------------------------------------------
 showAllRoles = () => {
   console.log(chalk.cyan.bold(`======================================================================`));
-  console.log(`                  ` + chalk.yellow.bold(`Viewing All Roles:`));
+  console.log(`                  ` + chalk.yellow.bold( `Viewing All Roles:` ));
   console.log(chalk.cyan.bold(`======================================================================`));
   const sql = `SELECT * FROM role`;
 
@@ -104,10 +104,7 @@ showAllRoles = () => {
 // showAllEmployees();------------------------------------------------------------
 showAllEmployees = () => {
   console.log(chalk.cyan.bold(`======================================================================`));
-  console.log(
-    `                              ` +
-      chalk.yellow.bold(`Viewing All Employees:`)
-  );
+  console.log(`                  ` +chalk.yellow.bold( `Viewing All Employees:` ));
   console.log(chalk.cyan.bold(`======================================================================`));
   const sql = `SELECT employee.id, 
                     employee.first_name, 
@@ -142,13 +139,9 @@ addDepartment = () => {
       let sql = `INSERT INTO department (department_name) VALUES (?)`;
       connection.query(sql, answer.addDepartment, (err, response) => {
         if (err) throw err;
-        console.log(``);
-        console.log(
-          chalk.yellow(
-            answer.addDepartment + ` New Department Successfully Created!`
-          )
-        );
-        console.log(``);
+        console.log(chalk.cyan.bold(`======================================================================`));
+        console.log(chalk.yellow.bold( `New Department` + answer.addDepartment +  `Successfully Created!` ));
+        console.log(chalk.cyan.bold(`======================================================================`));
         showAllDepartments();
       });
     });
@@ -193,7 +186,7 @@ addRole = () => {
       connection.promise().query(roleSql, (err, data) => {
         if (err) throw err;
 
-        const departmentName = data.map(({ name, id }) => ({
+        const departmentNames = data.map(({ name, id }) => ({
           name: name,
           value: id,
         }));
@@ -205,7 +198,7 @@ addRole = () => {
               type: "list",
               message:
                 "Please choose a department where you would like to add this role!",
-              choices: departmentName,
+              choices: departmentNames,
             },
           ])
           .then((departmentNameChoice) => {
@@ -217,7 +210,7 @@ addRole = () => {
             connection.query(sql, params, (err, res) => {
               if (err) throw err;
               console.log(chalk.cyan.bold(`======================================================================`));
-              console.log(chalk.yellow("New Role" + answer.role + "Created And Added To Roles!"));
+              console.log(chalk.yellow( `New Role` + answer.role + `Created And Added To Roles!` ));
               console.log(chalk.cyan.bold(`======================================================================`));
 
               showAllRoles();
@@ -226,18 +219,170 @@ addRole = () => {
       });
     });
 };
-//             conPassword.query(sql, params, (err, res) => {
-//                 if (err) throw err;
 
-//                 showAllRoles();
-//             });
-//     });
-// };
+// addEmployee(); -----------------------------------------------------------------
+addEmployee = () => {
+    inquirer
+      .prompt([
+        {
+          name: "firstName",
+          type: "input",
+          message: "Please enter the new employees first name!",
+          validate: (addFirstName) => {
+            if (addFirstName) {
+              return true;
+            } else {
+              console.log("Please enter employees first name!");
+              return false;
+            }
+          },
+        },
+        {
+          name: "lastName",
+          type: "input",
+          message: "Please enter the new employees last name!",
+          validate: (addLastName) => {
+            if (isNAN(addLastName)) {
+              return true;
+            } else {
+              console.log("Please enter employees last name!");
+              return false;
+            }
+          },
+        },
+      ])
+      .then((answer) => {
+        const params = [answer.firstName, answer.lastName];
+  
+        const roleSql =  `SELECT role.id, role.title FROM role`;
+        connection.promise().query(roleSql, (err, data) => {
+          if (err) throw err;
+  
+          const roleNames = data.map(({ title, id }) => ({
+            name: title,
+            value: id,
+          }));
+  
+          inquirer
+            .prompt([
+              {
+                name: "roleName",
+                type: "list",
+                message:
+                  "Please choose a role for the new employee!",
+                choices: roleNames,
+              },
+            ])
+            .then((roleNameChoice) => {
+              const roleName = roleNameChoice.roleName;
+              params.push(roleName);
 
-// // addEmployee(); -----------------------------------------------------------------
-// addEmployee();
+              const managerSql = `SELECT * FROM employee`;
+              connection.promise().query(managerSql, (err, data) => {
+                if (err) throw err;
+        
+                const managerNames = data.map(({ first_name, last_name, id }) => ({
+                  name: first_name + " " + last_name,
+                  value: id,
+                }));
+                
+              inquirer
+                .prompt([
+                  {
+                    name: "managerName",
+                    type: "list",
+                    message: "Please choose the employees manager!",
+                    choices: managerNames,
+                  },
+                ])
+                .then((managerNameChoice) => {
+                  const managerName = managerNameChoice.managerName;
+                  params.push(managerName);
+      
+                  const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                  VALUES (?, ?, ?, ?)`;
+      
+                  connection.query(sql, params, (err, res) => {
+                    if (err) throw err;
+                    console.log(chalk.cyan.bold(`======================================================================`));
+                    console.log(chalk.yellow( `New Employee` + answer.firstName + answer.lastName + `Has Been Added!` ));
+                    console.log(chalk.cyan.bold(`======================================================================`));
+      
+                showAllEmployees();
+                });
+            });
+          });
+        });
+      });
+    });
+};
 
-// // updateEmployeeRole(); -----------------------------------------------------------------
-// updateEmployeeRole();
+// updateEmployeeRole(); -----------------------------------------------------------------
+updateEmployeeRole = () => {
+// first get list of employees from table
+    const employeeSql = `SELECT * FROM employee`;
+        connection.promise().query(employeeSql, (err, data) => {
+            if (err) throw (err);
+
+    const employeesList = data.map(({ id, first_name, last_name }) => ({
+        name: first_name + " " + last_name,
+        value: id,
+    }));
+
+          inquirer
+            .prompt([
+              {
+                name: "employeeName",
+                type: "list",
+                message:"Please choose the employee you would like to update!",
+                choices: employeesList,
+              },
+            ])
+
+            .then((employeeChoice) => {
+              const employeeName = employeeChoice.employeeName;
+              const params = [];
+              params.push(employeeName);
+
+              const roleSql = `SELECT * FROM role`;
+              connection.promise().query(roleSql, (err, data) => {
+                if (err) throw err;
+        
+                const roles = data.map(({ id, title }) => ({
+                  name: title,
+                  value: id,
+                }));
+                
+          inquirer
+              .prompt([
+                {
+                  name: "employeeRole",
+                  type: "list",
+                  message: "Please update the employees role!",
+                  choices: roles,
+                },
+              ])
+            .then((employeeChoice) => {
+                const employeeRole = employeeChoice.employee;
+                params.push(employeeRole);
+
+                let employeeName = params[0]
+                params[0] = employeeRole
+                params[1] = employeeName 
+    
+                const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
+                connection.query(sql, params, (err, res) => {
+                  if (err) throw err;
+                  console.log(chalk.cyan.bold(`======================================================================`));
+                  console.log(chalk.yellow( `Employee` + answer.firstName + answer.lastName + `Role Has Been Updated!` ));
+                  console.log(chalk.cyan.bold(`======================================================================`));     
+      
+                showAllEmployees();
+                });
+            });
+          });
+        });
+    });
+};
 
 module.exports = app;
