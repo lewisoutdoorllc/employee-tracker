@@ -5,9 +5,9 @@
   "main": "password.js",
   "scripts": {
     "test": "jest",
-    "migrate": "db/tracker.db < db/schema.sql",
-    "seed": "db/tracker.db < db/seeds.sql",
-    "db": "db/tracker.db",
+    "migrate": "mysql db/tracker.db < db/schema.sql",
+    "seed": "mysql db/tracker.db < db/seeds.sql",
+    "db": "mysql db/tracker.db",
     "start": "node server.js"
   },
   "repository": {
@@ -24,6 +24,7 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "console.table": "^0.10.0",
+    "dotenv": "^8.2.0",
     "figlet": "^1.5.0",
     "inquirer": "^8.0.0",
     "mysql2": "^2.2.5"
