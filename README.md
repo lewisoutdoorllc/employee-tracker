@@ -22,7 +22,8 @@ ao they can organize and plan their business .
   
   # Installation
 
-  Clone the repo using the link below and from the navigate to the root and run 'npm install'. You can then start the CLI by running node app.js and follow
+  Clone the repo using the link below and from the navigate to the root and run 'npm install'. Open the IDE by typing 'code .', then navigate to  
+  the '.env' file and input your password for MySql. You can then start the CLI by running node app.js and follow
   the prompts to start making your database of departments, roles, and employees.
 
   [Employee Tracker](https://github.com/lewisoutdoorllc/employee-tracker)
